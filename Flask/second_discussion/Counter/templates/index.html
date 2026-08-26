@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Counter Assignment</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+    />
+  </head>
+  <body class="bg-light text-center p-5">
+    <div
+      class="container bg-white p-4 rounded shadow-sm"
+      style="max-width: 500px"
+    >
+      <h1 class="mb-4">Counter</h1>
+
+      <h3 class="display-4 text-primary mb-2">
+        {{ session['counter'] }} times
+      </h3>
+      <p class="text-muted mb-4">Actual Page Visits: {{ session['visits'] }}</p>
+
+      <div class="d-flex justify-content-center mb-4">
+        <a href="/add_two" class="btn btn-success mx-1">+2 Add</a>
+        <a href="/destroy_session" class="btn btn-danger mx-1"
+          >Destroy Session</a
+        >
+        <a href="/reset" class="btn btn-warning mx-1">Reset</a>
+      </div>
+
+      <form
+        action="/custom_increment"
+        method="POST"
+        class="form-inline justify-content-center"
+      >
+        <div class="form-group mb-2">
+          <input
+            type="number"
+            name="increment"
+            class="form-control mr-2"
+            min="1"
+            required
+            style="width: 150px"
+          />
+        </div>
+        <button type="submit" class="btn btn-primary mb-2">Increment</button>
+      </form>
+    </div>
+  </body>
+</html>
