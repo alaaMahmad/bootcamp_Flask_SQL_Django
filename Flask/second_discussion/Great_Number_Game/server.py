@@ -23,7 +23,6 @@ def guess():
 
     guess_val = int(request.form['guess'])
     session['attempts'] += 1
-    session['last_guess'] = guess_val
 
     if guess_val == session['target']:
         session['result'] = 'correct'
@@ -42,7 +41,6 @@ def guess():
 def submit_score():
     name = request.form['name']
     leaderboard.append({'name': name, 'attempts': session.get('attempts', 0)})
-    leaderboard.sort(key=lambda x: x['attempts'])
     return redirect('/leaderboard')
 
 @app.route('/leaderboard')
