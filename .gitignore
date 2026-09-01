@@ -1,0 +1,35 @@
+# ==========================================
+# Virtual Environments (venv)
+# ==========================================
+Django/django/
+Flask/flask/
+
+# ==========================================
+# Test & Temporary Folders
+# ==========================================
+Django/django_intro/
+
+# ==========================================
+# Python / Cache Artifacts
+# ==========================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# ==========================================
+# Flask & Django Specific Build/Temp Files
+# ==========================================
+instance/
+.webassets-cache
+*.sqlite3
+*.log
+
+# ==========================================
+# OS & IDE System Files
+# ==========================================
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

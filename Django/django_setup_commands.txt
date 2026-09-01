@@ -1,0 +1,88 @@
+===================================================================
+DJANGO QUICK-START CHEAT SHEET
+===================================================================
+
+1. CREATE VIRTUAL ENVIRONMENT
+-------------------------------------------------------------------
+python -m venv myenv
+
+
+2. ACTIVATE VIRTUAL ENVIRONMENT
+-------------------------------------------------------------------
+source myenv/Scripts/activate
+
+
+3. INSTALL DJANGO
+-------------------------------------------------------------------
+pip install django
+
+
+4. NAVIGATE TO WORKSPACE DIRECTORY
+-------------------------------------------------------------------
+cd D:\bootcamp\Flask_SQL_Django\Django\django_intro
+
+
+5. CREATE A NEW DJANGO PROJECT
+-------------------------------------------------------------------
+django-admin startproject first_project
+
+
+6. ENTER PROJECT DIRECTORY
+-------------------------------------------------------------------
+cd first_project
+
+
+7. CREATE A NEW DJANGO APP
+-------------------------------------------------------------------
+python manage.py startapp first_app
+
+
+8. RUN THE DEVELOPMENT SERVER
+-------------------------------------------------------------------
+python manage.py runserver
+
+
+===================================================================
+PROJECT CONFIGURATION SUMMARY
+===================================================================
+
+[A] Add App to INSTALLED_APPS (first_project/settings.py):
+-------------------------------------------------------------------
+INSTALLED_APPS = [
+    'first_app',
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+]
+
+
+[B] Include App URLs in Project (first_project/urls.py):
+-------------------------------------------------------------------
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', include('first_app.urls')),
+]
+
+
+[C] Define App Routes (first_app/urls.py):
+-------------------------------------------------------------------
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('test/', views.index),
+]
+
+
+[D] Define View Function (first_app/views.py):
+-------------------------------------------------------------------
+from django.shortcuts import HttpResponse
+
+def index(request):
+    return HttpResponse("this is the equivalent of @app.route('/')!")
