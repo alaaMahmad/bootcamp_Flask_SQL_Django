@@ -1,0 +1,82 @@
+1. DATABASE MANAGEMENT
+
+1.1 Creating a Database:
+CREATE DATABASE database_name;
+
+1.2 Selecting / Using a Database:
+USE database_name;
+
+
+2. TABLE OPERATIONS & SCHEMA MODIFICATION
+
+2.1 Creating a Table with Constraints:
+CREATE TABLE table_name (
+    column1_name DATA_TYPE PRIMARY KEY AUTO_INCREMENT,
+    column2_name DATA_TYPE NOT NULL,
+    column3_name DATA_TYPE UNIQUE NOT NULL,
+    foreign_key_column DATA_TYPE,
+    FOREIGN KEY (foreign_key_column) REFERENCES parent_table_name(parent_column_name)
+);
+
+2.2 Listing All Tables:
+SHOW TABLES;
+
+2.3 Altering a Table (Adding a New Column):
+ALTER TABLE table_name ADD COLUMN column_name DATA_TYPE;
+
+
+3. DATA MANIPULATION (DML)
+
+3.1 Inserting Data (Single or Multiple Rows):
+-- Inserting multiple rows:
+INSERT INTO table_name (column1, column2, column3) VALUES
+(value1_a, value2_a, value3_a),
+(value1_b, value2_b, value3_b);
+
+-- Inserting a single row:
+INSERT INTO table_name (column1, column2) VALUES
+(value1, value2);
+
+3.2 Updating Records:
+UPDATE table_name SET column1 = value1, column2 = value2 WHERE condition;
+
+3.3 Deleting Records:
+DELETE FROM table_name WHERE condition;
+
+
+4. DATA QUERYING & FILTERING (DQL)
+
+4.1 Selecting All Columns and Rows:
+SELECT * FROM table_name;
+
+4.2 Filtering Records with WHERE:
+SELECT column1, column2 FROM table_name WHERE condition;
+
+4.3 Sorting Query Results (ORDER BY):
+SELECT column1, column2 FROM table_name ORDER BY column_name DESC;
+
+
+5. AGGREGATIONS & FUNCTIONS
+
+5.1 Grouping and Aggregating (GROUP BY & COUNT):
+SELECT grouping_column, COUNT(aggregate_column) AS summary_alias
+FROM table_name
+GROUP BY grouping_column;
+
+5.2 Aggregate Functions (MAX, MIN, SUM, AVG):
+SELECT MAX(column_name) AS max_value FROM table_name;
+
+5.3 Scalar / String Functions (LENGTH):
+SELECT LENGTH(column_name) AS string_length FROM table_name WHERE condition;
+
+
+6. TABLE JOINS
+
+6.1 INNER JOIN:
+SELECT columns FROM tableA INNER JOIN tableB ON tableA.key_column = tableB.key_column;
+
+6.2 LEFT JOIN (Left Outer Join):
+SELECT columns FROM tableA LEFT JOIN tableB ON tableA.key_column = tableB.key_column;
+
+6.3 RIGHT JOIN (Right Outer Join):
+SELECT columns FROM tableA RIGHT JOIN tableB ON tableA.key_column = tableB.key_column;
