@@ -4,7 +4,7 @@ from datetime import datetime
 def index(request):
     now = datetime.now()
     context = {
-        'date': now.strftime('%b %d, %Y'),  
+        'date': now.strftime('%B %d, %Y'),  
         'time': now.strftime('%I:%M %p')    
     }
     return render(request, 'index.html', context)
