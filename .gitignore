@@ -1,13 +1,25 @@
 # ==========================================
+# Environment Variables & Secrets
+# ==========================================
+.env
+.env.*
+!.env.example
+
+# ==========================================
 # Virtual Environments (venv)
 # ==========================================
 Django/django/
 Flask/flask/
+venv/
+.venv/
+env/
+ENV/
 
 # ==========================================
 # Test & Temporary Folders
 # ==========================================
 Django/django_intro/
+Django/third_discussion/orm/
 
 # ==========================================
 # Python / Cache Artifacts
@@ -25,6 +37,8 @@ instance/
 .webassets-cache
 *.sqlite3
 *.log
+media/
+staticfiles/
 
 # ==========================================
 # OS & IDE System Files

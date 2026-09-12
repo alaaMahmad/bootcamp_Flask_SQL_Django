@@ -1,0 +1,147 @@
+===================================================================
+DJANGO ORM & MODELS CHEAT SHEET
+===================================================================
+
+1. DEFINE MODELS & RELATIONSHIPS (app_name/models.py)
+-------------------------------------------------------------------
+from django.db import models
+
+class Author(models.Model):
+    name = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+class Book(models.Model):
+    title = models.CharField(max_length=255)
+    # One-to-Many Relationship using ForeignKey
+    author = models.ForeignKey(Author, related_name="books", on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+2. MAKE & APPLY DATABASE MIGRATIONS
+-------------------------------------------------------------------
+python manage.py makemigrations app_name
+python manage.py migrate
+
+
+3. INTERACTING WITH MODELS VIA DJANGO SHELL
+-------------------------------------------------------------------
+# Open the interactive Django environment
+python manage.py shell
+
+# Inside the shell, first import your models:
+from app_name.models import Author, Book
+
+
+===================================================================
+HANDLING MIGRATION ERRORS (Adding Non-Nullable Fields)
+===================================================================
+
+When adding a new non-nullable field to an existing model:
+
+Option 1: Provide a one-off default in CLI
+-------------------------------------------------------------------
+Select option 1, then enter default value (e.g., "no value" or 0).
+Then run: python manage.py migrate
+
+Option 2: Add default or null=True in models.py
+-------------------------------------------------------------------
+# Option A: Set default value
+age = models.IntegerField(default=200)
+
+# Option B: Allow null in database
+age = models.IntegerField(null=True)
+
+Then run:
+python manage.py makemigrations app_name
+python manage.py migrate
+
+Option 3: Reset Database (Emergency / Local Dev Only)
+-------------------------------------------------------------------
+Delete files:
+- db.sqlite3
+- app_name/migrations/
+- app_name/__pycache__/
+
+Then re-run:
+python manage.py makemigrations app_name
+python manage.py migrate
+
+
+===================================================================
+DJANGO ORM CRUD OPERATIONS & QUERIES (RUN IN SHELL / VIEWS)
+===================================================================
+
+[A] CREATE RECORDS:
+-------------------------------------------------------------------
+# Create parent instance
+this_author = Author.objects.create(name="Jane Austen")
+
+# Create child instance with ForeignKey (Method 1)
+my_book = Book.objects.create(title="Emma", author=this_author)
+
+# Create child instance with inline lookup (Method 2)
+my_book = Book.objects.create(
+    title="Little Women", 
+    author=Author.objects.get(id=2)
+)
+
+
+[B] READ & QUERY RECORDS:
+-------------------------------------------------------------------
+# Retrieve single record
+some_book = Book.objects.get(id=5)
+
+# Access direct attributes
+book_title = some_book.title
+
+# Access related foreign object directly
+author_name = some_book.author.name
+author_id = some_book.author.id
+
+# Filter records by ForeignKey
+books_by_author = Book.objects.filter(author=this_author)
+books_by_author_id = Book.objects.filter(author=Author.objects.get(id=2))
+
+
+[C] REVERSE LOOKUP USING RELATED_NAME:
+-------------------------------------------------------------------
+# Query all books belonging to a specific author
+author_obj = Author.objects.get(id=1)
+all_author_books = author_obj.books.all()  # Uses related_name="books"
+
+
+===================================================================
+INTEGRATING ORM WITH VIEWS & TEMPLATES
+===================================================================
+
+[A] Pass Querysets in Views (app_name/views.py):
+-------------------------------------------------------------------
+from django.shortcuts import render
+from .models import Author, Book
+
+def index(request):
+    context = {
+        "authors": Author.objects.all()
+    }
+    return render(request, 'index.html', context)
+
+
+[B] Display Querysets & Reverse Lookups in Template (templates/index.html):
+-------------------------------------------------------------------
+<h1>Author List</h1>
+<ul>
+    {% for author in authors %}
+        <li>
+            {{ author.name }}
+            <ul>
+                {% for book in author.books.all %}
+                    <li><em>{{ book.title }}</em></li>
+                {% endfor %}
+            </ul>
+        </li>
+    {% endfor %}
+</ul>
+
+# Note: In templates, call methods without parentheses (e.g. author.books.all).
