@@ -1,0 +1,36 @@
+python manage.py makemigrations users_shell_app
+python manage.py migrate
+
+python manage.py shell 
+
+from users_shell_app.models import User
+
+
+#1
+User.objects.create(first_name="Alaa", last_name="Shaheen", email_address="alaa@example.com", age=25)
+User.objects.create(first_name="Ahmad", last_name="Hassan", email_address="ahmad@example.com", age=30)
+User.objects.create(first_name="Baraa", last_name="Khalil", email_address="baraa@example.com", age=22)
+
+#2
+User.objects.all()
+
+#3
+User.objects.last()
+
+#4
+User.objects.first()
+
+#5
+user3 = User.objects.get(id=3)
+user3.last_name = "Pancakes"
+user3.save()
+
+#6
+user2 = User.objects.get(id=2)
+user2.delete()
+
+#7
+User.objects.all().order_by("first_name")
+
+#the bonus
+User.objects.all().order_by("-first_name")
