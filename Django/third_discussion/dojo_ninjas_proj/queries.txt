@@ -1,0 +1,60 @@
+python manage.py makemigrations dojo_ninjas_app
+python manage.py migrate
+
+python manage.py shell 
+
+from dojo_ninjas_app.models import Dojo, Ninja
+
+
+#1
+Dojo.objects.create(name="Jerusalem Dojo", city="Jerusalem", state="PS")
+Dojo.objects.create(name="Gaza Dojo", city="Gaza", state="PS")
+Dojo.objects.create(name="Hebron Dojo", city="Hebron", state="PS")
+
+#2
+Dojo.objects.all().delete()
+
+#3
+dojo1 = Dojo.objects.create(name="Ramallah Dojo", city="Ramallah", state="PS")
+dojo2 = Dojo.objects.create(name="Nablus Dojo", city="Nablus", state="PS")
+dojo3 = Dojo.objects.create(name="Yafa Dojo", city="Yafa", state="PS")
+
+#4
+Ninja.objects.create(first_name="Alaa", last_name="Shaheen", dojo=dojo1)
+Ninja.objects.create(first_name="Ahmad", last_name="Hassan", dojo=dojo1)
+Ninja.objects.create(first_name="Baraa", last_name="Khalil", dojo=dojo1)
+
+#5
+Ninja.objects.create(first_name="Mohammad", last_name="Kassab", dojo=dojo2)
+Ninja.objects.create(first_name="Samer", last_name="Zaid", dojo=dojo2)
+Ninja.objects.create(first_name="Youssef", last_name="Nasser", dojo=dojo2)
+
+#6
+Ninja.objects.create(first_name="Tariq", last_name="Omer", dojo=dojo3)
+Ninja.objects.create(first_name="Omar", last_name="Farooq", dojo=dojo3)
+Ninja.objects.create(first_name="Khaled", last_name="Mahmoud", dojo=dojo3)
+
+#7
+Dojo.objects.first().ninjas.all()
+
+#8
+Dojo.objects.last().ninjas.all()
+
+#9
+Ninja.objects.last().dojo
+
+
+#after 9
+exit()
+
+#10
+i add the desc to dojo class in the models and i make the commands at below
+python manage.py makemigrations dojo_ninjas_app
+python manage.py migrate
+
+
+#11
+python manage.py shell
+
+from dojo_ninjas_app.models import Dojo, Ninja
+Dojo.objects.create(name="Akka Dojo", city="Akka", state="PS", desc="Historical coastal dojo")
