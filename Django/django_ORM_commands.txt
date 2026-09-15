@@ -18,6 +18,13 @@ class Book(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+class Publisher(models.Model):
+    name = models.CharField(max_length=255)
+    # Many-to-Many Relationship
+    books = models.ManyToManyField(Book, related_name="publishers")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
 
 2. MAKE & APPLY DATABASE MIGRATIONS
 -------------------------------------------------------------------
@@ -31,7 +38,7 @@ python manage.py migrate
 python manage.py shell
 
 # Inside the shell, first import your models:
-from app_name.models import Author, Book
+from app_name.models import Author, Book, Publisher
 
 
 ===================================================================
@@ -61,7 +68,7 @@ Option 3: Reset Database (Emergency / Local Dev Only)
 -------------------------------------------------------------------
 Delete files:
 - db.sqlite3
-- app_name/migrations/
+- app_name/migrations/ (keep __init__.py)
 - app_name/__pycache__/
 
 Then re-run:
@@ -75,8 +82,8 @@ DJANGO ORM CRUD OPERATIONS & QUERIES (RUN IN SHELL / VIEWS)
 
 [A] CREATE RECORDS:
 -------------------------------------------------------------------
-# Create parent instance
-this_author = Author.objects.create(name="Jane Austen")
+# Create parent instance (using transliterated name)
+this_author = Author.objects.create(name="Ahmad")
 
 # Create child instance with ForeignKey (Method 1)
 my_book = Book.objects.create(title="Emma", author=this_author)
@@ -86,7 +93,6 @@ my_book = Book.objects.create(
     title="Little Women", 
     author=Author.objects.get(id=2)
 )
-
 
 [B] READ & QUERY RECORDS:
 -------------------------------------------------------------------
@@ -100,16 +106,118 @@ book_title = some_book.title
 author_name = some_book.author.name
 author_id = some_book.author.id
 
-# Filter records by ForeignKey
+# Filter records by ForeignKey (returns QuerySet)
 books_by_author = Book.objects.filter(author=this_author)
 books_by_author_id = Book.objects.filter(author=Author.objects.get(id=2))
-
 
 [C] REVERSE LOOKUP USING RELATED_NAME:
 -------------------------------------------------------------------
 # Query all books belonging to a specific author
 author_obj = Author.objects.get(id=1)
 all_author_books = author_obj.books.all()  # Uses related_name="books"
+
+[D] MANY-TO-MANY OPERATIONS:
+-------------------------------------------------------------------
+# Create instance
+pub = Publisher.objects.create(name="Global Publishing")
+
+# Add association
+pub.books.add(some_book)
+
+# Remove association
+pub.books.remove(some_book)
+
+# Query related objects via reverse lookup
+associated_publishers = some_book.publishers.all()
+
+
+===================================================================
+CUSTOM MODEL MANAGERS & VALIDATION WITH REGEX
+===================================================================
+
+[A] Define Custom Manager with Regex (app_name/models.py):
+-------------------------------------------------------------------
+import re
+from django.db import models
+
+class UserManager(models.Manager):
+    def basic_validator(self, postData):
+        errors = {}
+        EMAIL_REGEX = re.compile(r'^[a-zA-Z0-9.+_-]+@[a-zA-Z0-9._-]+\.[a-zA-Z]+$')
+
+        # Name validations
+        first_name = postData.get('first_name', '').strip()
+        if len(first_name) < 2 or not first_name.isalpha():
+            errors["first_name"] = "First name must be at least 2 alphabetic characters."
+
+        # Regex Email validation
+        email = postData.get('email', '').strip()
+        if not EMAIL_REGEX.match(email):
+            errors["email"] = "Invalid email address format."
+
+        return errors
+
+class User(models.Model):
+    first_name = models.CharField(max_length=45)
+    last_name = models.CharField(max_length=45)
+    email = models.CharField(max_length=255)
+    password = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    objects = UserManager()
+
+
+===================================================================
+AUTHENTICATION & PASSWORD HASHING WITH BCRYPT
+===================================================================
+
+[A] Installation:
+-------------------------------------------------------------------
+pip install bcrypt
+
+[B] Hashing on Registration & Verification on Login (app_name/views.py):
+-------------------------------------------------------------------
+import bcrypt
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .models import User
+
+def register(request):
+    if request.method == "POST":
+        errors = User.objects.basic_validator(request.POST)
+        if errors:
+            for key, value in errors.items():
+                messages.error(request, value)
+            return redirect('/')
+
+        raw_password = request.POST['password']
+        # Hash password and decode byte string to store in DB
+        pw_hash = bcrypt.hashpw(raw_password.encode(), bcrypt.gensalt()).decode()
+
+        # Create user (e.g., Alaa)
+        user = User.objects.create(
+            first_name=request.POST['first_name'],
+            last_name=request.POST['last_name'],
+            email=request.POST['email'],
+            password=pw_hash
+        )
+        request.session['user_id'] = user.id
+        return redirect('/dashboard')
+
+def login(request):
+    if request.method == "POST":
+        # Use filter() instead of get() to avoid raising unhandled DoesNotExist errors
+        users = User.objects.filter(email=request.POST['email'])
+        if users:
+            logged_user = users[0]
+            # Verify input password against stored hash
+            if bcrypt.checkpw(request.POST['password'].encode(), logged_user.password.encode()):
+                request.session['user_id'] = logged_user.id
+                return redirect('/dashboard')
+
+        messages.error(request, "Invalid email or password.")
+        return redirect('/')
 
 
 ===================================================================
@@ -127,7 +235,6 @@ def index(request):
     }
     return render(request, 'index.html', context)
 
-
 [B] Display Querysets & Reverse Lookups in Template (templates/index.html):
 -------------------------------------------------------------------
 <h1>Author List</h1>
@@ -144,4 +251,37 @@ def index(request):
     {% endfor %}
 </ul>
 
-# Note: In templates, call methods without parentheses (e.g. author.books.all).
+# Note: In templates, call methods without parentheses (e.g., author.books.all).
+
+
+===================================================================
+TROUBLESHOOTING & DATABASE MAINTENANCE
+===================================================================
+
+[A] "no such table" Error:
+-------------------------------------------------------------------
+Occurs when database tables are missing or migrations haven't been applied.
+Fix:
+python manage.py makemigrations app_name
+python manage.py migrate
+
+[B] Preventing Shell Locks & Database Corruption:
+-------------------------------------------------------------------
+Active terminals holding locks on `db.sqlite3` can throw:
+`database disk image is malformed`
+
+Rule: ALWAYS exit active environments before database file operations!
+1. Close shell: exit()
+2. Stop server: Ctrl + C
+
+[C] Safe Database Reset Protocol (Local Development):
+-------------------------------------------------------------------
+rm db.sqlite3
+rm -rf app_name/migrations/00*
+python manage.py makemigrations app_name
+python manage.py migrate
+
+[D] VS Code SQLite Inspection:
+-------------------------------------------------------------------
+Inspect SQLite schemas and rows visually by installing:
+- SQLite Viewer (`qwtel`)
