@@ -45,13 +45,11 @@ def process_money(request):
         else:
             msg = f"Entered a casino and lost {abs(earned)} golds"
             color = 'red'
-
-        # Insert new activity at the top
+    
         activities = request.session.get('activities', [])
         activities.insert(0, {'msg': msg, 'color': color})
         request.session['activities'] = activities
 
-        # Check win/loss rules
         if request.session['gold'] >= 250 and request.session['moves'] <= 15:
             request.session['game_over'] = True
             request.session['win_status'] = 'win'
