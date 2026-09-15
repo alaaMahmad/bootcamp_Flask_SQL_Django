@@ -7,9 +7,9 @@ from users_shell_app.models import User
 
 
 #1
-User.objects.create(first_name="Alaa", last_name="Shaheen", email_address="alaa@example.com", age=25)
-User.objects.create(first_name="Ahmad", last_name="Hassan", email_address="ahmad@example.com", age=30)
-User.objects.create(first_name="Baraa", last_name="Khalil", email_address="baraa@example.com", age=22)
+User.objects.create(first_name="Alaa", last_name="Shaheen", email_address="alaa@ggggggggggggg.com", age=25)
+User.objects.create(first_name="Ahmad", last_name="Hassan", email_address="ahmad@gmail.com", age=30)
+User.objects.create(first_name="Baraa", last_name="Khalil", email_address="baraa@gmail.com", age=22)
 
 #2
 User.objects.all()
