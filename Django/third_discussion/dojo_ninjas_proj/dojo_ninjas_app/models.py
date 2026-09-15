@@ -8,8 +8,6 @@ class Dojo(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def __repr__(self):
-        return f"<Dojo object: {self.name}>"
 
 class Ninja(models.Model):
     first_name = models.CharField(max_length=255)
@@ -18,5 +16,3 @@ class Ninja(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def __repr__(self):
-        return f"<Ninja object: {self.first_name} {self.last_name}>"
