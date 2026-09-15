@@ -60,7 +60,7 @@
       {% for dojo in all_dojos %}
       <div class="dojo-card">
         <h3>
-          Ninjas at the {{ dojo.name }} - {{ dojo.ninjas.count }}
+          Ninjas at the {{ dojo.name }}
           <form
             action="/dojos/{{ dojo.id }}/delete"
             method="POST"
