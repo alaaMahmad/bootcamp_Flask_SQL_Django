@@ -19,6 +19,7 @@ ENV/
 # Test & Temporary Folders
 # ==========================================
 Django/django_intro/
+Django/user_proj/
 Django/third_discussion/orm/
 
 # ==========================================
