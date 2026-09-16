@@ -1,34 +1,23 @@
 from django.shortcuts import render, redirect
-from .models import Dojo, Ninja
+from . import models
 
 def index(request):
     context = {
-        "all_dojos": Dojo.objects.all()
+        "all_dojos": models.get_all_dojos()
     }
     return render(request, 'index.html', context)
 
 def create_dojo(request):
     if request.method == "POST":
-        Dojo.objects.create(
-            name=request.POST['name'],
-            city=request.POST['city'],
-            state=request.POST['state']
-        )
+        models.create_dojo(request.POST)
     return redirect('/')
 
 def create_ninja(request):
     if request.method == "POST":
-        dojo_id = request.POST['dojo_id']
-        selected_dojo = Dojo.objects.get(id=dojo_id)
-        Ninja.objects.create(
-            first_name=request.POST['first_name'],
-            last_name=request.POST['last_name'],
-            dojo=selected_dojo
-        )
+        models.create_ninja(request.POST)
     return redirect('/')
 
 def delete_dojo(request, dojo_id):
     if request.method == "POST":
-        dojo_to_delete = Dojo.objects.get(id=dojo_id)
-        dojo_to_delete.delete()
+        models.delete_dojo(dojo_id)
     return redirect('/')
