@@ -21,7 +21,8 @@ ENV/
 Django/django_intro/
 Django/user_proj/
 Django/third_discussion/orm/
-
+Django/django_mysql_app.sql
+Django/django_mysql_proj
 # ==========================================
 # Python / Cache Artifacts
 # ==========================================
