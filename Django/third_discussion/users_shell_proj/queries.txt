@@ -10,7 +10,9 @@ from users_shell_app.models import User
 User.objects.create(first_name="Alaa", last_name="Shaheen", email_address="alaa@ggggggggggggg.com", age=25)
 User.objects.create(first_name="Ahmad", last_name="Hassan", email_address="ahmad@gmail.com", age=30)
 User.objects.create(first_name="Baraa", last_name="Khalil", email_address="baraa@gmail.com", age=22)
-
+User.objects.create(first_name="Alaa", last_name="Shaheen", email_address="alaa@ggggggggggggg.com", age=25,phone_number="155552266")
+# to get the users startwith 15 in phone number
+User.objects.filter(phone_number__startswith = "15")
 #2
 User.objects.all()
 
@@ -22,7 +24,7 @@ User.objects.first()
 
 #5
 user3 = User.objects.get(id=3)
-user3.last_name = "Pancakes"
+user3.last_name = "ssssssssssssss"
 user3.save()
 
 #6

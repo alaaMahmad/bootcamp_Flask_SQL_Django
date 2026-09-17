@@ -15,6 +15,7 @@
           <th>Name</th>
           <th>Email</th>
           <th>Age</th>
+          <th>phone number</th>
         </tr>
       </thead>
       <tbody>
@@ -24,6 +25,7 @@
           <td>{{ user.first_name }} {{ user.last_name }}</td>
           <td>{{ user.email_address }}</td>
           <td>{{ user.age }}</td>
+          <td>{{user.phone_number}}</td>
         </tr>
         {% endfor %}
       </tbody>
@@ -49,6 +51,10 @@
       <div class="form-group">
         <label>Age:</label>
         <input type="number" name="age" required />
+      </div>
+      <div class="form-group">
+        <label>phone number:</label>
+        <input type="text" name="phone_number" required />
       </div>
       <button type="submit">Add</button>
     </form>
