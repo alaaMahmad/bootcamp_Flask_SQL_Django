@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Add a Book</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="column">
+        <h1>Add a Book</h1>
+        <form action="/books/add" method="POST">
+          {% csrf_token %}
+          <p>Title <input type="text" name="title" required /></p>
+          <p>Description <textarea name="desc" required></textarea></p>
+          <button type="submit">Add</button>
+        </form>
+      </div>
+      <div class="column">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Title</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for book in all_books %}
+            <tr>
+              <td>{{ book.id }}</td>
+              <td>{{ book.title }}</td>
+              <td><a href="/books/{{ book.id }}">View</a></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </body>
+</html>

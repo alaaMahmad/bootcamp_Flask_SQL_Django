@@ -1,0 +1,72 @@
+python manage.py makemigrations books_authors_app
+python manage.py migrate
+python manage.py shell
+
+from books_authors_app.models import Book, Author
+# 1
+b1 = Book.objects.create(title="C Sharp", desc="A book about C# programming.")
+b2 = Book.objects.create(title="Java", desc="A book about Java programming.")
+b3 = Book.objects.create(title="Python", desc="A book about Python programming.")
+b4 = Book.objects.create(title="PHP", desc="A book about PHP programming.")
+b5 = Book.objects.create(title="Ruby", desc="A book about Ruby programming.")
+
+
+# 2
+a1 = Author.objects.create(first_name="Alaa", last_name="Shaheen")
+a2 = Author.objects.create(first_name="Ahmad", last_name="Hassan")
+a3 = Author.objects.create(first_name="Baraa", last_name="Khalil")
+a4 = Author.objects.create(first_name="Mohammad", last_name="Saleh")
+a5 = Author.objects.create(first_name="Kareem", last_name="Al-Sayed")
+
+
+# 3
+book1 = Book.objects.get(id=1)
+book1.title = "C#"
+book1.save()
+
+
+# 4
+author4 = Author.objects.get(id=4)
+author4.first_name = "Bill"
+author4.save()
+
+
+# 5
+author1 = Author.objects.get(id=1)
+author1.books.add(Book.objects.get(id=1), Book.objects.get(id=2))
+
+
+# 6
+author2 = Author.objects.get(id=2)
+author2.books.add(Book.objects.get(id=1), Book.objects.get(id=2), Book.objects.get(id=3))
+
+
+# 7
+author3 = Author.objects.get(id=3)
+author3.books.add(Book.objects.get(id=1), Book.objects.get(id=2), Book.objects.get(id=3), Book.objects.get(id=4))
+
+
+# 8
+author4 = Author.objects.get(id=4)
+for book in Book.objects.all():
+author4.books.add(book) #here i need to add 4 spaces in the shell
+
+
+# 9
+Book.objects.get(id=3).authors.all()
+
+
+# 10
+Book.objects.get(id=3).authors.remove(Author.objects.get(id=1))
+
+
+# 11
+Book.objects.get(id=2).authors.add(Author.objects.get(id=5))
+
+
+# 12
+Author.objects.get(id=3).books.all()
+
+
+# 13
+Book.objects.get(id=5).authors.all()
