@@ -1,0 +1,265 @@
+===================================================================
+EXAM_TEST_PROJ & EXAM_TEST_APP COMPLETE PROJECT CHEAT SHEET
+===================================================================
+
+1. PROJECT SETUP & CONFIGURATION
+-------------------------------------------------------------------
+django-admin startproject exam_test_proj
+cd exam_test_proj
+python manage.py startapp exam_test_app
+
+# Update settings.py:
+INSTALLED_APPS = [
+    ...
+    'exam_test_app',
+]
+STATIC_URL = '/static/'
+
+# exam_test_proj/urls.py
+from django.urls import path, include
+urlpatterns = [
+    path('', include('exam_test_app.urls')),
+]
+
+# exam_test_app/urls.py
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('', views.index),
+    path('register', views.register),
+    path('login', views.login),
+    path('logout', views.logout),
+    path('dashboard', views.dashboard),
+    path('create', views.create_participant),
+    path('view/<int:id>', views.view_participant),
+    path('edit/<int:id>', views.edit_participant),
+    path('delete/<int:id>', views.delete_participant),
+    path('view/current/report', views.report),
+]
+
+
+===================================================================
+2. MODELS, MANAGERS & DB HELPER FUNCTIONS (exam_test_app/models.py)
+===================================================================
+import re
+from datetime import datetime, date
+from django.db import models
+
+class UserManager(models.Manager):
+    def register_validator(self, postData):
+        errors = {}
+        EMAIL_REGEX = re.compile(r'^[a-zA-Z0-9.+_-]+@[a-zA-Z0-9._-]+\.[a-zA-Z]+$')
+
+        first_name = postData.get('first_name', '').strip()
+        if len(first_name) < 2 or not first_name.isalpha():
+            errors['first_name'] = "First name must be at least 2 alphabetic characters."
+
+        last_name = postData.get('last_name', '').strip()
+        if len(last_name) < 2 or not last_name.isalpha():
+            errors['last_name'] = "Last name must be at least 2 alphabetic characters."
+
+        email = postData.get('email', '').strip()
+        if not EMAIL_REGEX.match(email):
+            errors['email'] = "Invalid email format."
+        elif User.objects.filter(email=email).exists():
+            errors['email'] = "Email already registered."
+
+        username = postData.get('username', '').strip()
+        if len(username) < 3:
+            errors['username'] = "Username must be at least 3 characters."
+        elif User.objects.filter(username=username).exists():
+            errors['username'] = "Username already taken."
+
+        password = postData.get('password', '')
+        confirm_pw = postData.get('confirm_pw', '')
+        if len(password) < 8:
+            errors['password'] = "Password must be at least 8 characters."
+        if password != confirm_pw:
+            errors['confirm_pw'] = "Passwords do not match."
+
+        return errors
+
+class ParticipantManager(models.Manager):
+    def participant_validator(self, postData):
+        errors = {}
+        phone = postData.get('phone_number', '').strip()
+        if len(phone) != 10 or not phone.isdigit():
+            errors['phone_number'] = "Phone number must be exactly 10 digits."
+
+        start_date = postData.get('start_date', '')
+        end_date = postData.get('end_date', '')
+        if start_date and end_date:
+            s_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+            e_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+            if e_date <= s_date:
+                errors['end_date'] = "End date must be after start date."
+
+        return errors
+
+class User(models.Model):
+    username = models.CharField(max_length=50, unique=True)
+    first_name = models.CharField(max_length=50)
+    last_name = models.CharField(max_length=50)
+    email = models.CharField(max_length=255, unique=True)
+    phone_number = models.CharField(max_length=15)
+    password = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    objects = UserManager()
+
+class Participant(models.Model):
+    first_name = models.CharField(max_length=50)
+    last_name = models.CharField(max_length=50)
+    phone_number = models.CharField(max_length=15)
+    start_date = models.DateField()
+    end_date = models.DateField()
+    created_by = models.ForeignKey(User, related_name="participants", on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    objects = ParticipantManager()
+
+
+# --- DATABASE HELPER FUNCTIONS (Encapsulated in models.py) ---
+
+def add_user(data, pw_hash):
+    return User.objects.create(
+        username=data['username'],
+        first_name=data['first_name'],
+        last_name=data['last_name'],
+        email=data['email'],
+        phone_number=data['phone_number'],
+        password=pw_hash
+    )
+
+def get_user_by_username(username):
+    users = User.objects.filter(username=username)
+    return users[0] if users else None
+
+def get_user_by_id(user_id):
+    return User.objects.get(id=user_id)
+
+def add_participant(data, user_id):
+    creator = User.objects.get(id=user_id)
+    return Participant.objects.create(
+        first_name=data['first_name'],
+        last_name=data['last_name'],
+        phone_number=data['phone_number'],
+        start_date=data['start_date'],
+        end_date=data['end_date'],
+        created_by=creator
+    )
+
+def get_all_participants():
+    return Participant.objects.all()
+
+def get_active_participants():
+    today = date.today()
+    return Participant.objects.filter(start_date__lte=today, end_date__gte=today)
+
+
+===================================================================
+3. VIEWS USING MODEL HELPERS (exam_test_app/views.py)
+===================================================================
+import bcrypt
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from . import models
+
+def index(request):
+    return render(request, 'landing.html')
+
+def register(request):
+    if request.method == "POST":
+        errors = models.User.objects.register_validator(request.POST)
+        if errors:
+            for key, val in errors.items():
+                messages.error(request, val)
+            return redirect('/')
+        
+        pw_hash = bcrypt.hashpw(request.POST['password'].encode(), bcrypt.gensalt()).decode()
+        user = models.add_user(request.POST, pw_hash)
+        request.session['user_id'] = user.id
+        return redirect('/dashboard')
+    return redirect('/')
+
+def login(request):
+    if request.method == "POST":
+        user = models.get_user_by_username(request.POST['username'])
+        if user and bcrypt.checkpw(request.POST['password'].encode(), user.password.encode()):
+            request.session['user_id'] = user.id
+            return redirect('/dashboard')
+        messages.error(request, "Invalid username or password.")
+    return redirect('/')
+
+def logout(request):
+    request.session.clear()
+    return redirect('/')
+
+def dashboard(request):
+    if 'user_id' not in request.session:
+        return redirect('/')
+    context = {
+        'logged_user': models.get_user_by_id(request.session['user_id']),
+        'participants': models.get_all_participants()
+    }
+    return render(request, 'dashboard.html', context)
+
+def create_participant(request):
+    if 'user_id' not in request.session:
+        return redirect('/')
+    if request.method == "POST":
+        errors = models.Participant.objects.participant_validator(request.POST)
+        if errors:
+            for key, val in errors.items():
+                messages.error(request, val)
+            return redirect('/create')
+        
+        models.add_participant(request.POST, request.session['user_id'])
+        return redirect('/dashboard')
+    return render(request, 'create_participant.html')
+
+def report(request):
+    if 'user_id' not in request.session:
+        return redirect('/')
+    context = {
+        'active_participants': models.get_active_participants()
+    }
+    return render(request, 'report.html', context)
+
+
+===================================================================
+4. TESTING IN DJANGO SHELL WITH HELPERS
+===================================================================
+python manage.py shell
+
+>>> import bcrypt
+>>> from exam_test_app import models
+
+# Create User
+>>> pw_hash = bcrypt.hashpw('pass123'.encode(), bcrypt.gensalt()).decode()
+>>> u = models.add_user({'username': 'alaa_gym', 'first_name': 'Alaa', 'last_name': 'Ahmad', 'email': 'alaa@test.com', 'phone_number': '0599111222'}, pw_hash)
+
+# Add Participant
+>>> p = models.add_participant({'first_name': 'Baraa', 'last_name': 'Mohammad', 'phone_number': '0599333444', 'start_date': '2026-09-01', 'end_date': '2026-10-01'}, u.id)
+
+# Query via related_name reverse lookup
+>>> u.participants.all()
+
+>>> exit()
+
+
+===================================================================
+5. TROUBLESHOOTING & RESET PROTOCOL
+===================================================================
+# "no such table" fix:
+python manage.py makemigrations exam_test_app
+python manage.py migrate
+
+# Safe Reset (Terminate shell and server first!):
+rm db.sqlite3
+rm -rf exam_test_app/migrations/00*
+python manage.py makemigrations exam_test_app
+python manage.py migrate
