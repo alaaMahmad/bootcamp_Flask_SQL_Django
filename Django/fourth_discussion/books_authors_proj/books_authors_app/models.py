@@ -53,8 +53,7 @@ def get_author_by_id(author_id):
 
 def get_unassigned_books_for_author(author_id):
     author = get_author_by_id(author_id)
-    assigned_book_ids = author.books.values_list('id', flat=True)
-    return Book.objects.exclude(id__in=assigned_book_ids)
+    return Book.objects.exclude(authors=author)
 
 def add_book_to_author(author_id, book_id):
     author = get_author_by_id(author_id)
