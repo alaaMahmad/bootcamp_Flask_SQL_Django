@@ -13,7 +13,6 @@
         <a href="/shows">Go Back</a>
       </div>
 
-      <!-- FLASH ERROR MESSAGES -->
       {% if messages %}
       <ul class="messages">
         {% for message in messages %}
@@ -28,12 +27,12 @@
           <label>Title</label>
           <input type="text" name="title" />
         </p>
-        <div style="display: flex; gap: 20px">
-          <p style="flex: 1">
+        <div class="form-row">
+          <p class="form-group-flex">
             <label>Network</label>
             <input type="text" name="network" />
           </p>
-          <p style="flex: 1">
+          <p class="form-group-flex">
             <label>Release Date</label>
             <input type="date" name="release_date" />
           </p>

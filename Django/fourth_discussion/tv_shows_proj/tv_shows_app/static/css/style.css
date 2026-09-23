@@ -98,3 +98,27 @@ a:hover {
     border-radius: 4px;
     margin-bottom: 8px;
 }
+
+.btn-link {
+    background: none;
+    border: none;
+    color: #007bff;
+    padding: 0;
+    cursor: pointer;
+    text-decoration: underline;
+    font-size: inherit;
+    font-family: inherit;
+}
+
+.btn-link:hover {
+    color: #0056b3;
+}
+
+.form-row {
+    display: flex;
+    gap: 20px;
+}
+
+.form-group-flex {
+    flex: 1;
+}

@@ -5,25 +5,23 @@ class ShowManager(models.Manager):
     def basic_validator(self, post_data, show_id=None):
         errors = {}
 
-        # 1.for the Title Validations
         title = post_data.get('title', '').strip()
         if len(title) < 2:
             errors['title'] = "Title should be at least 2 characters."
         
-        # for the bonus: Uniqueness validation
+    
         existing_shows = Show.objects.filter(title__iexact=title)
         if show_id:
-            # Exclude the current show being updated
             existing_shows = existing_shows.exclude(id=show_id)
         if existing_shows.exists():
             errors['title_unique'] = "A show with this title already exists in the database."
 
-        # 2. Network Validations
+
         network = post_data.get('network', '').strip()
         if len(network) < 3:
             errors['network'] = "Network should be at least 3 characters."
 
-        # 3. Release Date Validations (this is NINJA BONUS)
+
         release_date_str = post_data.get('release_date', '').strip()
         if not release_date_str:
             errors['release_date'] = "Release Date is required."
@@ -35,7 +33,7 @@ class ShowManager(models.Manager):
             except ValueError:
                 errors['release_date_invalid'] = "Invalid release date format."
 
-        # 4. Description Validations (this is NINJA BONUS)
+
         description = post_data.get('description', '').strip()
         if description and len(description) < 10:
             errors['description'] = "Description is optional, but if present must be at least 10 characters."
