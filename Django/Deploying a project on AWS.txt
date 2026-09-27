@@ -1,0 +1,22 @@
+### Preparing the project to deploy:
+1- Activating the virtual environment.
+2- Navigate to the project directory, same level as 'manage.py', then:
+	-pip freeze > requirements.txt
+2- Open the requirements.txt file and remove (pygraphviz, pydot) as well as anything that has to do with MySQL.
+3- Create a .gitignore file in the project directory:
+	touch .gitignore
+	-Add the following lines to:
+	vscode
+	env/
+	venv/
+	_pycache_/
+	.vscode/
+	db.sqlite3
+4- Now, initialize a GitHub Repo and push the deployment project.
+
+### Preparing the AWS EC2 Instance:
+1- Create the EC2 Instance on AWS.
+2- Connect to your instances via cmd line:
+	-Navigate to the directory where you saved your pem key file.
+	-In your AWS console, select the instance and click "Connect".
+	-Connect to your server through the instructions shown after clicking "Connect" on AWS.
