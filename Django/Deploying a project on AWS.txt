@@ -3,16 +3,42 @@
 2- Navigate to the project directory, same level as 'manage.py', then:
 	-pip freeze > requirements.txt
 2- Open the requirements.txt file and remove (pygraphviz, pydot) as well as anything that has to do with MySQL.
+	-it will be lock like this 
+	asgiref==3.12.1
+	bcrypt==5.0.0
+	Django==5.2.17
+	tzdata==2026.3
 3- Create a .gitignore file in the project directory:
 	touch .gitignore
 	-Add the following lines to:
-	vscode
+	.vscode
 	env/
 	venv/
-	_pycache_/
+	__pycache__/
 	.vscode/
 	db.sqlite3
 4- Now, initialize a GitHub Repo and push the deployment project.
+
+Creating a repository:
+
+1- First create it on github.com
+2- cd in the terminal to your repo directory
+3- echo "# My Repository" > README.md
+4- git config --global --add safe.directory 'D:\bootcamp\Deployments\tv_shows_proj'
+5- git init
+6- git remote add origin git@github.com:omar-rayyan/My-Python-Projects.git
+7- git add .
+8- git commit -m "Initial commit"
+9- git push -u origin master
+
+Pushing new commits and changes:
+
+1- git add .
+2- git commit -m "Changes"
+3- git push origin master
+
+
+###before go to next step now you can deactivate my env 
 
 ### Preparing the AWS EC2 Instance:
 1- Create the EC2 Instance on AWS.
@@ -20,3 +46,216 @@
 	-Navigate to the directory where you saved your pem key file.
 	-In your AWS console, select the instance and click "Connect".
 	-Connect to your server through the instructions shown after clicking "Connect" on AWS.
+
+
+Preparing our server for deployment:
+1- Installing updates:
+   sudo apt-get update   
+2- Installing Nginx (Our website manager)
+   sudo apt install nginx   
+3- Cloning our project inside our Ubuntu server system:
+   git clone clone_link   
+4- Installing venv so we can create a virtual environment:
+   sudo apt-get install python3-venv   
+5- Navigate to your repo directory and create a virtual environment:
+   cd repo_name
+   python3 -m venv env_name
+   source env_name/bin/activate   
+6- Installing dependencies inside our environment:
+   "pip install django==2.2 #it must be the same inside the (requirements.txt)
+   pip install bcrypt
+   pip install gunicorn"
+	or make this:
+   "pip install --upgrade pip setuptools
+   pip install -r requirements.txt
+   pip install gunicorn"  
+7- Installing vim terminal-based text editor:
+   sudo apt install vim   
+8- Navigate to the directory where settings.py lives and start editing it:
+   cd repo_name/project_name
+   sudo vim settings.py   
+
+inside settings.py
+modify these lines
+   At the very top of the file (on line 1), add:
+   import os
+   DEBUG = False
+   ALLOWED_HOSTS = ['{{yourEC2.public.ip}}'] # keep the quotes!
+   STATIC_ROOT = os.path.join(BASE_DIR, "static/") # add this line at the bottom; don't replace any existing lines! 
+   
+   -Save and quit: Esc, wq, enter
+
+9- Navigate back to the same level as manage.py:
+    cd..
+10- Gather all static files:
+    - python manage.py collectstatic
+	Here if there is an error you must upgrade Django by write this :
+	pip install --upgrade "django>=5.0" 
+11- Do your project migrations:
+    python manage.py makemigrations
+    python manage.py migrate
+
+
+Setting up Gunicorn, our server process manager:
+1- First we test it inside our repo directory:
+   cd repo_name
+   gunicorn project_name.wsgi
+   If the process ran correctly, all good. CTRL+C and deactivate your virtual env. 
+
+2- Now, we have to set up gunicorn as a service so that it can start up whenever our system reboots. 
+   sudo vim /etc/systemd/system/gunicorn.service
+   Copy and paste the following code and modify as needed:
+[Unit]
+Description=gunicorn daemon
+After=network.target
+
+[Service]
+User=ubuntu
+Group=www-data
+WorkingDirectory=/home/ubuntu/{{myRepoName}}
+ExecStart=/home/ubuntu/{{myRepoName}}/{{venv_name}}/bin/gunicorn --workers 3 --bind unix:/home/ubuntu/{{myRepoName}}/{{projectName}}.sock {{projectName}}.wsgi:application
+
+[Install]
+WantedBy=multi-user.target
+
+Save and quit: Esc, :wq, enter
+
+Now, we can enable it to start on boot:
+sudo systemctl daemon-reload
+sudo systemctl restart gunicorn
+sudo systemctl status gunicorn
+
+
+Setting up Nginx, our server manager:
+1- We must first create a file to configure our web server:
+	sudo vim /etc/nginx/sites-available/project_name
+server {
+    listen 80;
+    server_name {{yourEC2.public.ip}};
+
+    location = /favicon.ico { access_log off; log_not_found off; }
+    location /static/ {
+        root /home/ubuntu/{{myRepoName}};
+    }
+
+    location / {
+        include proxy_params;
+        proxy_pass http://unix:/home/ubuntu/{{myRepoName}}/{{projectName}}.sock;
+    }
+}
+
+	Save and quit: Esc, :wq, enter
+
+2- Now, we create a link to the file we created above to let Nginx know which settings to use:
+   sudo ln -s /etc/nginx/sites-available/{{projectName}}/etc/nginx/sites-enabled   
+3- Testing it to make sure the link was successfull:
+   sudo nginx -t   
+4- Now that we have our custom configuration, we may remove the Nginx default configuration:
+   sudo rm /etc/nginx/sites-enabled/default   
+5- Now we restart gunicorn:
+   sudo systemctl restart gunicorn   
+6- Now we must set the correct permissions for our socket files so that our server can access it:
+sudo chmod 664 /home/ubuntu/{{myRepoName}}/{{projectName}}.sock
+sudo chown www-data:www-data /home/ubuntu/{{myRepoName}}/{{projectName}}.sock   
+7- Now we add Nginx to the user group that owns the socket file:
+   sudo usermod -aG ubuntu www-data 
+
+8- Now, we restart Nginx:
+sudo service nginx restart
+sudo systemctl daemon-reload
+sudo systemctl restart nginx
+
+
+
+
+
+
+
+
+extra info to multiple Instances running:
+
+Scenario A: Stopping exam test proj and Running tv_shows_proj_deploy
+Step 1: Stop the exam test proj Instance on AWS
+	Open the AWS Management Console and navigate to EC2 $\rightarrow$ Instances.
+	Select the checkbox next to exam test proj (i-0d23ed10bc279a530).   
+	Click Instance state $\rightarrow$ Stop instance $\rightarrow$ Click Stop.   
+	Wait 30–60 seconds until the status displays Stopped.   
+
+Step 2: Configure and Fix tv_shows_proj_deploy Commands (via SSH on 52.59.24.49)
+	Connect to your active tv_shows_proj instance via SSH and run these commands to ensure it is listening on Port 80 and accepting traffic:
+# 1. Allow Port 80 through Ubuntu's internal firewall
+sudo ufw allow 80/tcp
+sudo ufw allow 'Nginx Full'
+
+# 2. Set strict socket and folder permissions
+chmod 755 /home/ubuntu
+sudo chmod 666 /home/ubuntu/tv_shows_proj_deploy/tv_shows_proj.sock
+sudo chown www-data:www-data /home/ubuntu/tv_shows_proj_deploy/tv_shows_proj.sock
+sudo usermod -aG ubuntu www-data
+
+# 3. Create the Nginx symlink and remove default configuration
+sudo ln -sf /etc/nginx/sites-available/tv_shows_proj /etc/nginx/sites-enabled/
+sudo rm -f /etc/nginx/sites-enabled/default
+
+# 4. Verify Nginx syntax and restart services
+sudo nginx -t
+sudo systemctl daemon-reload
+sudo systemctl restart gunicorn
+sudo systemctl restart nginx
+
+Step 3: Test Access
+Open your browser in an Incognito tab and go to:
+http://52.59.24.49
+
+
+Scenario B: Stopping tv_shows_proj_deploy and Rerunning exam test proj
+When you want to pause tv_shows_proj and restart exam test proj, follow these steps:
+Step 1: Stop tv_shows_proj on AWS
+	Go to AWS EC2 Console -> Instances.   
+	Select tv_shows_proj (i-0e62346099d60dcdf).   
+	Click Instance state -> Stop instance -> Click Stop.
+
+Step 2: Start exam test proj on AWS
+	Select exam test proj (i-0d23ed10bc279a530).   
+	Click Instance state -> Start instance.Wait for the status to change to Running.   
+	Copy the NEW Public IPv4 address assigned by AWS to exam test proj (e.g., 3.x.x.x).
+
+	exit
+	
+Connect via SSH to exam test proj
+From your local terminal (where your .pem key file is located), run:
+ssh -i "your-key-file.pem" ubuntu@{{NEW_PUBLIC_IP}}
+	like this: ssh -i "exam_test_proj.pem" ubuntu@63.181.81.76
+
+# 1. Update ALLOWED_HOSTS inside settings.py with the NEW Public IP
+	cd exam_test_proj_deploy
+	source env/bin/activate
+sudo vim /home/ubuntu/exam_test_proj_deploy/exam_test_proj/settings.py
+# (Change ALLOWED_HOSTS = ['NEW_PUBLIC_IP'])
+
+# 2. Update Nginx configuration with the NEW Public IP
+sudo vim /etc/nginx/sites-available/exam_test_proj
+# (Change server_name NEW_PUBLIC_IP;)
+
+# 3. Allow Port 80 on Ubuntu's local firewall
+sudo ufw allow 80/tcp
+sudo ufw allow 'Nginx Full'
+
+sudo systemctl daemon-reload
+sudo systemctl restart gunicorn
+
+# 4. Ensure correct socket file permissions
+chmod 755 /home/ubuntu
+sudo chmod 666 /home/ubuntu/exam_test_proj_deploy/*.sock
+sudo chown www-data:www-data /home/ubuntu/exam_test_proj_deploy/*.sock
+
+# 5. Reload services
+sudo nginx -t
+sudo systemctl daemon-reload
+sudo systemctl restart gunicorn
+sudo systemctl restart nginx
+
+Step 4: Test Access
+Open your browser in an Incognito tab and navigate to:
+
+http://<NEW_PUBLIC_IP>
