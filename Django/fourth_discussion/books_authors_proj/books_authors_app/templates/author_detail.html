@@ -16,8 +16,6 @@
       <ul>
         {% for book in author.books.all %}
         <li>{{ book.title }}</li>
-        {% empty %}
-        <li>No books assigned yet.</li>
         {% endfor %}
       </ul>
 

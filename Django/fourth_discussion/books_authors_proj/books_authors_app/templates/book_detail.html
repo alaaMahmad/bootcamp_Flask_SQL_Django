@@ -16,8 +16,6 @@
       <ul>
         {% for author in book.authors.all %}
         <li>{{ author.first_name }} {{ author.last_name }}</li>
-        {% empty %}
-        <li>No authors assigned yet.</li>
         {% endfor %}
       </ul>
 
